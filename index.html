@@ -5,8 +5,33 @@
         <header>
             <img src="/images/logo.svg" width="50" height="50" alt="">
         </header>
-        <div class="cards"></div>
-        <footer></footer>
+        <div class="cards">
+            <article>
+                <img src="/images/cards/1.webp" alt="ReactJs">
+                <h2>ReactJs <span>8</span></h2>
+                <div class="choise noise">NOPE</div>
+                <div class="choise like">LIKE</div>
+            </article>
+
+            <article>
+                <img src="/images/cards/1.webp" alt="ReactJs">
+                <h2>ReactJs <span>8</span></h2>
+                <div class="choise noise">NOPE</div>
+                <div class="choise like">LIKE</div>
+            </article>
+
+            <span>
+                No hay más productos para mostrar... <br>
+                Vuelve a intentarlo más tarde
+            </span>
+        </div>
+        <footer>
+            <button class="is-undo" aria-label="undo"></button>
+            <button class="is-remove is-big" aria-label="remove"></button>
+            <button class="is-star" aria-label="star"></button>
+            <button class="is-fav is-big" aria-label="fav"></button>
+            <button class="is-zap" aria-label="zap"></button>
+        </footer>
     </section>
 </main>
 
@@ -21,7 +46,7 @@
         display: grid;
         place-content: center;
         min-height: 100vh;
-        background-color: #f0f0f0;
+        background-color: #0b141a;
         overflow: hidden;
         user-select: none;
     }
@@ -38,7 +63,9 @@
         background-color: #f6f6f6;
         border-radius: 32px;
         display: flex;
+        gap: 24px;
         flex-direction: column;
+        overflow: hidden;
         width: 100%;
         position: relative;
         padding: 16px 6px;
@@ -50,6 +77,226 @@
         justify-content: center;
         align-items: center;
         margin-bottom: 16px;
+
+        & img {
+            width: 26px;
+            height: 26px;
+        }
+    }
+
+    footer {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        padding: 0 24px;
+        justify-content: center;
+        align-items: center;
+
+        & button {
+            border: 0;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            background: url('/images/icons.webp') no-repeat;
+            background-size: 175px;
+            background-position: 0px 0px;
+            cursor: pointer;
+            transition: scale .3s ease-in-out;
+
+            &:hover {
+                transform: scale(1.1);
+            }
+
+            &.is-undo {
+                background-position: -143px 0px;
+            }
+
+            &.is-remove {
+                background-position: -152px 0px;
+            }
+
+            &.is-star {
+                background-position: -72px 0px;
+            }
+
+            &.is-fav {
+                background-position: -50px 0px;
+            }
+
+            &.is-zap {
+                background-position: -1px 0px;
+            }
+
+            &.is-big {
+                background-size: 250px;
+                width: 48px;
+                height: 48px;
+            }
+        }
+    }
+
+    .cards{
+        position: relative;
+        width: 100%;
+        height: 100%;
+        margin: 0 auto;
+
+        & > span {
+            display: grid;
+            place-content: center;
+            font-size: 14px;
+            color: #777;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+        }
+
+        & article {
+            cursor: grab;
+            border-radius: 8px;
+            overflow: hidden;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+
+            & .choise {
+                z-index: 999;
+                position: absolute;
+                border: 3px solid;
+                top: 16px;
+                right: 16px;
+                font-size: 24px;
+                font-weight: 600;
+                border-radius: 8px;
+            }
+
+            &.reset {
+                transform: translateX(0) !important;
+                transition: transform .3s ease;
+            }
+
+            &.go-left, &.go-right {
+                transition: transform 0.3s ease, rotate 0.3s ease;
+            }
+
+            &.go-left {
+                transform: translateX(-200%) rotate(-30deg) !important;
+                z-index: 1;
+            }
+
+            &.go-right {
+                transform: translateX(200%) rotate(30deg) !important;
+                z-index: 1;
+            }
+    
+            & img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            & h2 {
+                position: absolute;
+                inset: 0;
+                padding: 16px;
+                z-index: 3;
+                color: #fff;
+                font-size: 24px;
+                font-weight: 500;
+                text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+                background: linear-gradient(to top, #00000088 20%, transparent 40%);
+                display: flex;
+                align-items: flex-end;
+                z-index: 2;
+
+                & span {
+                    line-height: 1.5;
+                    font-size: 16px;
+                    font-weight: 400;
+                    margin-left: 8px;
+                }
+            }
+        }
     }
 
 </style>
+
+<script>
+    const DESICION_THRESHOLD = 180;
+    let isAnimating = false;
+    let pullDeltaX = 0;
+
+    function startDrag(event) {
+
+        console.log(event);
+
+        if (isAnimating) return;
+        
+        const actualCard = event.target.closest('article');
+
+        const startX = event.pageX ?? event.touches[0].pageX;
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+
+        document.addEventListener('touchmove', onMove, {passive: true});
+        document.addEventListener('touchend', onEnd, {passive: true});
+
+        function onMove(event) {
+            const currentX = event.pageX ?? event.touches[0].pageX;
+            pullDeltaX = currentX - startX;
+
+            // No hay distancia recorrida
+            if(pullDeltaX === 0) return
+            isAnimating = true;
+
+            // calcule the rotation of the card using the distance
+            const deg = pullDeltaX / 10;
+
+            actualCard.style.transform = `translateX(${pullDeltaX}px) rotate(${deg}deg)`;
+            actualCard.style.cursor = 'grabbing';
+        }
+
+        function onEnd(event) {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+
+            document.removeEventListener('touchmove', onMove, {passive: true});
+            document.removeEventListener('touchend', onEnd, {passive: true});
+
+            // saber si el usuario ha tomado una decisión
+
+            const decisionMade = Math.abs(pullDeltaX) >= DESICION_THRESHOLD;
+
+            if (decisionMade) {
+                const goRight = pullDeltaX >= 0;
+                const goLeft = !goRight;
+
+                // add class acording to the decision   
+                actualCard.classList.add(goRight ? 'go-right' : 'go-left');
+                actualCard.addEventListener('transitionend', () => {
+                    actualCard.remove();
+                }, {once: true});
+            } else {
+                actualCard.classList.add('reset');
+                actualCard.classList.remove('go-right', 'go-left');
+            }
+
+            // reset the values
+
+            actualCard.addEventListener('transitionend', () => {
+                actualCard.removeAttribute('style');
+                actualCard.classList.remove('reset');
+                pullDeltaX = 0;
+                isAnimating = false;
+            }, {once: true});
+        }
+
+    }
+
+    document.addEventListener('mousedown', startDrag);
+    document.addEventListener('touchstart', startDrag, {passive: true});
+</script>
