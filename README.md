@@ -1,6 +1,6 @@
 # swipe-products
 
 <div style="display: flex">
-<img src="/image.png" width="80"> 
-<img src="/image1.png" width="80">
+<img src="/image.png" width="200"> 
+<img src="/image-1.png" width="200">
 </div>
